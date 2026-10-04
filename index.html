@@ -1,64 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESP32 Relay Control</title>
+  <title>Relay Control</title>
   
+  <!-- Firebase SDK-lar -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
+    }
+    body {
+      background-color: #f4f6f9;
+      color: #333333;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      padding: 20px;
     }
-    .container {
+    .wrapper {
+      width: 100%;
+      max-width: 900px;
+    }
+    
+    /* Login Form */
+    .login-box {
       background: #ffffff;
       padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       max-width: 400px;
+      margin: 80px auto;
       text-align: center;
+      border: 1px solid #e1e4e8;
     }
-    input {
-      width: 100%;
-      padding: 12px 15px;
-      margin: 10px 0 20px;
-      font-size: 1rem;
-      border: 1.5px solid #ccc;
-      border-radius: 10px;
-      box-sizing: border-box;
+    .login-box h2 {
+      margin-bottom: 20px;
+      color: #1a1a1a;
     }
-    button {
+    .login-box input {
       width: 100%;
-      background-color: #1e88e5;
-      color: white;
       padding: 12px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
     }
-    button.off {
-      background-color: #e53935;
+    .login-box input:focus {
+      border-color: #2563eb;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .btn-logout {
+      background-color: #e5e7eb;
+      color: #374151;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-logout:hover {
+      background-color: #d1d5db;
+    }
+
+    /* Top Cards Grid */
+    .top-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e5e7eb;
+    }
+    .card-title {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .bulk-btns button {
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+    .btn-on-all {
+      background-color: #2563eb;
+      color: white;
+    }
+    .btn-off-all {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    /* Relays Grid */
+    .relays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
     }
     .relay-card {
-      background: #f9f9f9;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ddd;
+      background: #ffffff;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
+    .relay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .relay-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2563eb;
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .relay-status {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .relay-time {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* Activity Log */
+    .log-box {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .btn-clear {
+      background: none;
+      border: none;
+      color: #6b7280;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .log-list {
+      list-style: none;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .log-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      color: #374151;
+    }
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
     #dashboard {
       display: none;
     }
@@ -66,41 +259,110 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="wrapper">
     <!-- GİRİŞ FORMASI -->
-    <div id="loginForm">
-      <h2>Giriş</h2>
+    <div id="loginForm" class="login-box">
+      <h2>Relay Control Giriş</h2>
       <input type="email" id="email" placeholder="E-poçt ünvanı">
       <input type="password" id="password" placeholder="Şifrə">
-      <button id="loginBtn">Daxil ol</button>
+      <button onclick="login()" class="btn-on-all" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px;">Daxil ol</button>
     </div>
 
-    <!-- İDARƏETMƏ PANELSİ VƏ DÜYMƏLƏR -->
+    <!-- PANELLƏR VƏ DÜYMƏLƏR -->
     <div id="dashboard">
-      <h2>ESP32 İdarəetmə Paneli</h2>
-      <p>Xoş gəldiniz!</p>
-      
-      <div class="relay-card">
-        <h3>Rele 1</h3>
-        <button id="relay1Btn" onclick="toggleRelay('relay1')">Yandır / Söndür</button>
+      <div class="header">
+        <h1>Relay Control</h1>
+        <button class="btn-logout" onclick="location.reload()">Çıxış</button>
       </div>
 
-      <div class="relay-card">
-        <h3>Rele 2</h3>
-        <button id="relay2Btn" onclick="toggleRelay('relay2')">Yandır / Söndür</button>
+      <!-- Yuxarı göstəricilər -->
+      <div class="top-cards">
+        <div class="card">
+          <div class="card-title">Aktiv relelər</div>
+          <div class="card-value" id="activeCount">0 / 4</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Bağlantı</div>
+          <div class="card-value" style="color: #10b981;">Aktivdir</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Son dəyişiklik</div>
+          <div class="card-value" id="lastChangeTime">--:--</div>
+        </div>
       </div>
 
-      <div class="relay-card">
-        <h3>Rele 3</h3>
-        <button id="relay3Btn" onclick="toggleRelay('relay3')">Yandır / Söndür</button>
+      <!-- Relelər bölməsi -->
+      <div class="section-header">
+        <div class="section-title">Rölələr</div>
+        <div class="bulk-btns">
+          <button class="btn-on-all" onclick="setAllRelays(true)">Hamısını yandır</button>
+          <button class="btn-off-all" onclick="setAllRelays(false)">Hamısını söndür</button>
+        </div>
       </div>
 
-      <div class="relay-card">
-        <h3>Rele 4</h3>
-        <button id="relay4Btn" onclick="toggleRelay('relay4')">Yandır / Söndür</button>
+      <div class="relays-grid">
+        <!-- Rele 1 -->
+        <div class="relay-card">
+          <div class="relay-header">
+            <span class="relay-name">Röle 1</span>
+            <label class="switch">
+              <input type="checkbox" id="relay1" onchange="toggleRelay('relay1', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="relay-status" id="relay1-status">Söndürülüb</div>
+          <div class="relay-time" id="relay1-time">Son dəyişiklik: -</div>
+        </div>
+
+        <!-- Rele 2 -->
+        <div class="relay-card">
+          <div class="relay-header">
+            <span class="relay-name">Röle 2</span>
+            <label class="switch">
+              <input type="checkbox" id="relay2" onchange="toggleRelay('relay2', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="relay-status" id="relay2-status">Söndürülüb</div>
+          <div class="relay-time" id="relay2-time">Son dəyişiklik: -</div>
+        </div>
+
+        <!-- Rele 3 -->
+        <div class="relay-card">
+          <div class="relay-header">
+            <span class="relay-name">Röle 3</span>
+            <label class="switch">
+              <input type="checkbox" id="relay3" onchange="toggleRelay('relay3', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="relay-status" id="relay3-status">Söndürülüb</div>
+          <div class="relay-time" id="relay3-time">Son dəyişiklik: -</div>
+        </div>
+
+        <!-- Rele 4 -->
+        <div class="relay-card">
+          <div class="relay-header">
+            <span class="relay-name">Röle 4</span>
+            <label class="switch">
+              <input type="checkbox" id="relay4" onchange="toggleRelay('relay4', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="relay-status" id="relay4-status">Söndürülüb</div>
+          <div class="relay-time" id="relay4-time">Son dəyişiklik: -</div>
+        </div>
       </div>
 
-      <button onclick="location.reload()" style="background-color: #757575; margin-top: 20px;">Çıxış et</button>
+      <!-- Son Fəaliyyət Jurnalı -->
+      <div class="log-box">
+        <div class="log-header">
+          <div class="section-title">Son fəaliyyət</div>
+          <button class="btn-clear" onclick="clearLogs()">Təmizlə</button>
+        </div>
+        <ul class="log-list" id="logList"></ul>
+      </div>
+
     </div>
   </div>
 
@@ -123,11 +385,7 @@
       "sumbuildersteam@gmail.com"
     ];
 
-    const loginForm = document.getElementById("loginForm");
-    const dashboard = document.getElementById("dashboard");
-    const loginBtn = document.getElementById("loginBtn");
-
-    loginBtn.addEventListener("click", () => {
+    function login() {
       const email = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value;
 
@@ -142,24 +400,67 @@
       }
 
       firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          loginForm.style.display = "none";
-          dashboard.style.display = "block";
+        .then(() => {
+          document.getElementById("loginForm").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+          initFirebaseRealtime();
         })
-        .catch((error) => {
+        .catch(() => {
           alert("E-poçt və ya şifrə yanlışdır!");
         });
-    });
+    }
 
-    // Releləri idarə etmək üçün funksiya
-    let relayStates = { relay1: false, relay2: false, relay3: false, relay4: false };
+    function getTimeString() {
+      const now = new Date();
+      return now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+    }
 
-    function toggleRelay(relay) {
-      relayStates[relay] = !relayStates[relay];
-      database.ref('relays/' + relay).set(relayStates[relay]);
-      alert(relay + " vəziyyəti dəyişdirildi: " + (relayStates[relay] ? "AÇIQ" : "KAPALI"));
+    function toggleRelay(relayKey, state) {
+      database.ref('relays/' + relayKey).set(state);
+      addLog((relayKey.replace('relay', 'Röle ')) + (state ? " yandırıldı" : " söndürüldü"));
+    }
+
+    function setAllRelays(state) {
+      ['relay1', 'relay2', 'relay3', 'relay4'].forEach(relayKey => {
+        database.ref('relays/' + relayKey).set(state);
+      });
+      addLog("Hamısı " + (state ? "yandırıldı" : "söndürüldü"));
+    }
+
+    function initFirebaseRealtime() {
+      database.ref('relays').on('value', snapshot => {
+        const data = snapshot.val() || {};
+        let activeCount = 0;
+        const timeNow = getTimeString();
+
+        ['relay1', 'relay2', 'relay3', 'relay4'].forEach((key, index) => {
+          const isChecked = !!data[key];
+          document.getElementById(key).checked = isChecked;
+          
+          const statusElem = document.getElementById(key + '-status');
+          statusElem.innerText = isChecked ? "Mövcuddur (Açıq)" : "Söndürülüb";
+          statusElem.style.color = isChecked ? "#10b981" : "#6b7280";
+
+          if (isChecked) activeCount++;
+          document.getElementById(key + '-time').innerText = "Son dəyişiklik: " + timeNow;
+        });
+
+        document.getElementById('activeCount').innerText = activeCount + " / 4";
+        document.getElementById('lastChangeTime').innerText = timeNow;
+      });
+    }
+
+    function addLog(message) {
+      const logList = document.getElementById('logList');
+      const li = document.createElement('li');
+      li.className = 'log-item';
+      li.innerHTML = `<span>• ${message}</span><span>${getTimeString()}</span>`;
+      logList.insertBefore(li, logList.firstChild);
+    }
+
+    function clearLogs() {
+      document.getElementById('logList').innerHTML = '';
     }
   </script>
-
 </body>
 </html>
