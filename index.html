@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Relay Control</title>
   
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -38,11 +37,6 @@
       border: 1.5px solid #ccc;
       border-radius: 10px;
       box-sizing: border-box;
-      outline-offset: 2px;
-      transition: border-color 0.3s ease;
-    }
-    input:focus {
-      border-color: #1e88e5;
     }
     button {
       width: 100%;
@@ -53,10 +47,17 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      margin-top: 10px;
     }
-    button:hover {
-      background-color: #1565c0;
+    button.off {
+      background-color: #e53935;
+    }
+    .relay-card {
+      background: #f9f9f9;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
     }
     #dashboard {
       display: none;
@@ -66,7 +67,7 @@
 <body>
 
   <div class="container">
-    <!-- LOGIN FORM -->
+    <!-- GİRİŞ FORMASI -->
     <div id="loginForm">
       <h2>Giriş</h2>
       <input type="email" id="email" placeholder="E-poçt ünvanı">
@@ -74,15 +75,36 @@
       <button id="loginBtn">Daxil ol</button>
     </div>
 
-    <!-- DASHBOARD PANEL -->
+    <!-- İDARƏETMƏ PANELSİ VƏ DÜYMƏLƏR -->
     <div id="dashboard">
       <h2>ESP32 İdarəetmə Paneli</h2>
-      <p>Xoş gəldiniz! Sistemə uğurla daxil oldunuz.</p>
+      <p>Xoş gəldiniz!</p>
+      
+      <div class="relay-card">
+        <h3>Rele 1</h3>
+        <button id="relay1Btn" onclick="toggleRelay('relay1')">Yandır / Söndür</button>
+      </div>
+
+      <div class="relay-card">
+        <h3>Rele 2</h3>
+        <button id="relay2Btn" onclick="toggleRelay('relay2')">Yandır / Söndür</button>
+      </div>
+
+      <div class="relay-card">
+        <h3>Rele 3</h3>
+        <button id="relay3Btn" onclick="toggleRelay('relay3')">Yandır / Söndür</button>
+      </div>
+
+      <div class="relay-card">
+        <h3>Rele 4</h3>
+        <button id="relay4Btn" onclick="toggleRelay('relay4')">Yandır / Söndür</button>
+      </div>
+
+      <button onclick="location.reload()" style="background-color: #757575; margin-top: 20px;">Çıxış et</button>
     </div>
   </div>
 
   <script>
-    // Firebase konfiqurasiyası
     const firebaseConfig = {
       apiKey: "AIzaSyBWJouUc-1MjYoRbtVSSdEYk1PGGCi8ons",
       authDomain: "esp32relaycontrole.firebaseapp.com",
@@ -94,8 +116,8 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    // Yalnız bu e-poçtlara icazə verilir:
     const allowedEmails = [
       "ayanxx911@gmail.com",
       "sumbuildersteam@gmail.com"
@@ -114,13 +136,11 @@
         return;
       }
 
-      // Siyahı yoxlanışı
       if (!allowedEmails.includes(email)) {
         alert("Bu e-poçt ünvanına giriş icazəsi verilməyib!");
         return;
       }
 
-      // Firebase daxilolma
       firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
           loginForm.style.display = "none";
@@ -130,6 +150,15 @@
           alert("E-poçt və ya şifrə yanlışdır!");
         });
     });
+
+    // Releləri idarə etmək üçün funksiya
+    let relayStates = { relay1: false, relay2: false, relay3: false, relay4: false };
+
+    function toggleRelay(relay) {
+      relayStates[relay] = !relayStates[relay];
+      database.ref('relays/' + relay).set(relayStates[relay]);
+      alert(relay + " vəziyyəti dəyişdirildi: " + (relayStates[relay] ? "AÇIQ" : "KAPALI"));
+    }
   </script>
 
 </body>
